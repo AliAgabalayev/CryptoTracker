@@ -1,74 +1,93 @@
-Crypto Price Tracker
+
+# Crypto Price Tracker
 
 This is a cryptocurrency price tracking application built with Python that fetches live price data for multiple cryptocurrencies, compares them with user-defined thresholds, and sends notifications via Telegram and desktop notifications. It also includes a caching system to reduce unnecessary API calls by checking for configuration changes.
 
-Features
-Fetches cryptocurrency prices from CoinMarketCap API.
-Tracks prices of selected cryptocurrencies.
-Sends Telegram and desktop notifications when a price threshold is reached.
-Caches configuration data with hash validation to reduce latency and avoid redundant API requests.
-Logs all alerts to a local file.
-Prerequisites
+## Features
+- Fetches cryptocurrency prices from CoinMarketCap API.
+- Tracks prices of selected cryptocurrencies.
+- Sends Telegram and desktop notifications when a price threshold is reached.
+- Caches configuration data with hash validation to reduce latency and avoid redundant API requests.
+- Logs all alerts to a local file.
+
+## Prerequisites
 Before using this project, you need the following:
+- Python 3.10 or later.
+- A CoinMarketCap API Key.
+- A Telegram Bot Token (for sending Telegram notifications).
+- A Telegram Chat ID (for sending notifications to your personal chat).
+- Access to a remote config file containing cryptocurrency symbols, price thresholds, and mute settings.
 
-Python 3.10 or later.
-A CoinMarketCap API Key.
-A Telegram Bot Token (for sending Telegram notifications).
-A Telegram Chat ID (for sending notifications to your personal chat).
-Access to a remote config file containing cryptocurrency symbols, price thresholds, and mute settings.
-Installation
-1. Clone the Repository
+## Installation
+### 1. Clone the Repository
 Clone the project repository to your local machine:
+```bash
+git clone https://github.com/yourusername/crypto-price-tracker.git 
+```
+### 2. Install Dependencies
+Navigate to the project directory and install the required dependencies:
+```bash
+cd crypto-price-tracker pip install -r requirements.txt
+```
+### 3. Set Up Environment Variables
 
-bash
-git clone https://github.com/yourusername/crypto-price-tracker.git
-2. Install Dependencies
-Navigate to the project directory and install the required Python packages:
-
-bash
-cd crypto-price-tracker
-pip install -r requirements.txt
-3. Set Up Environment Variables
-Create a .env file or set the following environment variables:
-
-bash
+You need to set up environment variables for the API key and Telegram bot information. Create a `.env` file in the root directory and add the following:
+```bash
 API_KEY=your_coinmarketcap_api_key
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 TELEGRAM_CHAT_ID=your_telegram_chat_id
-Alternatively, you can set the environment variables directly in your system.
+```
+### 4. Update Configuration
 
-4. Configure Remote File
-Ensure you have a remote config file stored on an accessible URL (e.g., Google Drive, Dropbox, etc.). The file should be a JSON file containing:
+You can fetch configuration from an external source or use the default `config.json` file. If you want to use an external URL for the config file, modify the URL in the `fetch_config()` function.
 
-crypto_symbols: List of cryptocurrency symbols (e.g., ["BTC", "ETH", "XRP"]).
-price_thresholds: Price thresholds for each cryptocurrency (e.g., {"BTC": {"up": 50000, "down": 40000}}).
-mute_settings: Mute settings for each cryptocurrency (e.g., {"BTC": false, "ETH": true}).
-5. Run the Script
-You can run the script directly:
+## Usage
 
-bash
+Once the setup is complete, you can run the script:
+```bash
 python crypto_price_tracker.py
-This will start fetching the cryptocurrency prices, checking for alerts, and sending notifications.
+```
+The script will run indefinitely, fetching cryptocurrency prices every 15 minutes, checking for price changes, and sending notifications if any alerts are triggered.
 
-How It Works
-Fetching Config: The script checks the remote config file and loads it. If the configuration changes, it updates the local cache and hash files.
-Fetching Cryptocurrency Prices: The script fetches live cryptocurrency prices using the CoinMarketCap API.
-Checking Alerts: It checks the fetched prices against the configured thresholds and sends notifications (desktop or Telegram) if the price crosses any threshold.
-Logging: Alerts are logged into a local alerts.log file.
-Caching System
-To minimize unnecessary network requests, the project uses a caching system that stores the configuration in config_cache.json and tracks the configuration file’s hash in config_cache_hash.txt. If the configuration file has changed, the system fetches the new data; otherwise, it uses the cached configuration.
+### Configuration File (`config.json`)
 
-Files and Directories
-crypto_price_tracker.py: Main script that runs the price tracking logic.
-config_cache.json: Cached configuration file.
-config_cache_hash.txt: Hash file to track changes in the configuration file.
-alerts.log: Logs all alerts sent by the application.
-Troubleshooting
-Invalid JSON Errors
-If the script fails to parse the remote configuration, ensure that the URL is correct and the JSON structure is valid. You can test the URL directly in your browser or using a tool like Postman to confirm the response.
+The configuration file contains the following:
 
-Missing Environment Variables
-Ensure that all required environment variables (API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID) are set correctly. You can check this by printing the values in the script to ensure they are loaded properly.
+-   **crypto_symbols**: A list of cryptocurrency symbols (e.g., `BTC`, `ETH`, etc.).
+-   **price_thresholds**: Defines price alert thresholds for each cryptocurrency.
+-   **mute_settings**: Allows you to mute notifications for specific cryptocurrencies.
 
-Contributing
-Feel free to fork this repository and create a pull request. If you encounter any issues or have suggestions, open an issue, and I will try to address it as soon as possible.
+Example `config.json`:
+```json
+{
+  "crypto_symbols": ["BTC", "ETH", "SOL", "XRP"],
+  "price_thresholds": {
+    "BTC": { "up": 50000, "down": 45000 },
+    "ETH": { "up": 4000, "down": 3500 }
+  },
+  "mute_settings": {
+    "SOL": true,
+    "XRP": false
+  }
+}
+```
+## How It Works
+
+-   The script fetches cryptocurrency prices every 15 minutes from the **CoinMarketCap API**.
+-   It compares the fetched prices against the configured thresholds and triggers alerts if prices exceed or drop below the specified values.
+-   Notifications are sent via **Telegram**.
+
+## Cache Mechanism
+
+-   The script uses caching to store the configuration in `config_cache.json` and its hash in `config_cache_hash.txt`.
+-   It checks if the configuration has changed by comparing the hash value. If there is a change, the new configuration is fetched and stored locally.
+
+## Telegram Notifications
+
+Telegram notifications are sent using the Telegram Bot API. To receive these notifications, you need to create a bot via BotFather and get your **chat ID**. Then, set up the `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in your `.env` file.
+
+## Future Improvements
+
+-   Add more customizable alert options.
+-   Integrate with other APIs for more cryptocurrency data.
+-   Improve error handling for API requests.
