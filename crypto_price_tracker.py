@@ -7,7 +7,7 @@ from plyer import notification  # Desktop notifications
 
 
 def load_config():
-    with open("config.json", "r") as config_file:
+    with open("config_file.json", "r") as config_file:
         return json.load(config_file)
 
 
