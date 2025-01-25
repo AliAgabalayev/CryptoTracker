@@ -1,9 +1,9 @@
-import os
-import json
-import time
 import hashlib
+import json
+import os
+import time
+
 import requests
-from plyer import notification
 
 API_KEY = os.getenv("API_KEY")
 API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
@@ -89,8 +89,6 @@ def get_crypto_prices():
 
 
 # Function to send desktop notifications
-def send_desktop_notification(title, message):
-    notification.notify(title=title, message=message, timeout=10)
 
 
 # Function to send Telegram notifications
@@ -140,7 +138,6 @@ def main():
                 for alert in alerts:
                     symbol = alert.split()[1]
                     if not config["mute_settings"].get(symbol, False):
-                        send_desktop_notification("Crypto Alert", alert)
                         send_telegram_notification(alert)
                 log_alerts(alerts)
 
