@@ -22,8 +22,8 @@ price_thresholds = {
 }
 
 # User-specific Telegram bot settings
-TELEGRAM_BOT_TOKEN = "8191101786:AAGm1LhhFBJvAnypBPmh7EIThmtD3nUXKn8"
-TELEGRAM_CHAT_ID = "1495952667"
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 # Track previously sent alerts to avoid duplicates
 alert_history = {}
