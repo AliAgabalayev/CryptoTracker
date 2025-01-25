@@ -1,4 +1,5 @@
 Crypto Price Tracker
+
 This is a cryptocurrency price tracking application built with Python that fetches live price data for multiple cryptocurrencies, compares them with user-defined thresholds, and sends notifications via Telegram and desktop notifications. It also includes a caching system to reduce unnecessary API calls by checking for configuration changes.
 
 Features
