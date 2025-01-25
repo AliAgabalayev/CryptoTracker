@@ -2,7 +2,6 @@ import platform
 import time
 import os
 import requests
-import winsound  # Windows-specific for sound
 from plyer import notification  # Desktop notifications
 
 API_KEY = os.getenv("API_KEY")
@@ -56,9 +55,6 @@ def get_crypto_prices():
 def send_desktop_notification(title, message):
     notification.notify(title=title, message=message, timeout=10)
 
-    # Play sound on Windows
-    if platform.system() == "Windows":
-        winsound.Beep(1000, 500)  # 1000 Hz frequency, 500ms duration
 
 
 def send_telegram_notification(message):
