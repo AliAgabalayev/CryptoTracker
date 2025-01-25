@@ -1,43 +1,29 @@
-import platform
-import time
+import json
 import os
+import time
+
 import requests
 from plyer import notification  # Desktop notifications
+
+
+def load_config():
+    with open("config.json", "r") as config_file:
+        return json.load(config_file)
+
+
+config = load_config()
 
 API_KEY = os.getenv("API_KEY")
 API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 
-CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL", "TRUMP", "XRP", "ENA", "HBAR", "WLD"]
-
-price_thresholds = {
-    "BTC": {"up": 110000, "down": 99000},
-    "ETH": {"up": 4000, "down": 3000},
-    "SOL": {"up": 260, "down": 220},
-    "TRUMP": {"up": 50, "down": 20},
-    "XRP": {"up": 3.4, "down": 3},
-    "ENA": {"up": 0.92, "down": 0.75},
-    "HBAR": {"up": 0.39, "down": 0},
-    "WLD": {"up": 2.3, "down": 2}
-}
-
-# User-specific Telegram bot settings
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+CRYPTO_SYMBOLS = config["crypto_symbols"]
+price_thresholds = config["price_thresholds"]
+mute_settings = config["mute_settings"]
 # Track previously sent alerts to avoid duplicates
 alert_history = {}
-
-
-mute_settings = {
-    "BTC": False,
-    "ETH": False,
-    "SOL": False,
-    "TRUMP": False,
-    "XRP": False,
-    "ENA": False,
-    "HBAR": False,
-    "WLD": True
-}
 
 
 def get_crypto_prices():
@@ -54,7 +40,6 @@ def get_crypto_prices():
 
 def send_desktop_notification(title, message):
     notification.notify(title=title, message=message, timeout=10)
-
 
 
 def send_telegram_notification(message):
