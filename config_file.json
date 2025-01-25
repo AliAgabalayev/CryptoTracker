@@ -1,0 +1,23 @@
+{
+  "crypto_symbols": ["BTC", "ETH", "SOL", "TRUMP", "XRP", "ENA", "HBAR", "WLD"],
+  "price_thresholds": {
+    "BTC": { "up": 110000, "down": 99000 },
+    "ETH": { "up": 4000, "down": 3000 },
+    "SOL": { "up": 260, "down": 220 },
+    "TRUMP": { "up": 50, "down": 20 },
+    "XRP": { "up": 3.4, "down": 3 },
+    "ENA": { "up": 0.92, "down": 0.75 },
+    "HBAR": { "up": 0.39, "down": 0 },
+    "WLD": { "up": 2.3, "down": 2 }
+  },
+  "mute_settings": {
+    "BTC": false,
+    "ETH": false,
+    "SOL": false,
+    "TRUMP": false,
+    "XRP": false,
+    "ENA": false,
+    "HBAR": false,
+    "WLD": true
+  }
+}
