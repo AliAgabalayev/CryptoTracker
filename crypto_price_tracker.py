@@ -11,6 +11,9 @@ API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 CACHE_FILE = "config_cache.json"
 CACHE_HASH_FILE = "config_cache_hash.txt"
 
+ALERT_STATE_FILE = "alert_state.json"
+ALERT_PERCENTAGE = 0.10
+
 FILE_ID = os.getenv('FILE_ID')
 config = {}
 
@@ -83,12 +86,25 @@ def get_crypto_prices():
 
     if response.status_code == 200:
         return response.json()["data"]
+    elif response.status_code == 429:
+        print("Rate limited. Retrying in 60 seconds...")
+        time.sleep(60)
     else:
         print(f"Error fetching data: {response.status_code}")
         return None
 
 
-# Function to send desktop notifications
+# Function to load previous alert states
+def load_alert_state():
+    if os.path.exists(ALERT_STATE_FILE):
+        with open(ALERT_STATE_FILE, "r") as file:
+            return json.load(file)
+    return {}
+
+
+def save_alert_state(state):
+    with open(ALERT_STATE_FILE, "w") as file:
+        json.dump(state, file)
 
 
 # Function to send Telegram notifications
@@ -106,13 +122,50 @@ def check_alerts(data):
     global config
     alerts = []
 
+    alert_state = load_alert_state()
+
     for symbol, info in data.items():
         price = round(info["quote"]["USD"]["price"], 2)
 
-        if price >= config["price_thresholds"][symbol]["up"]:
-            alerts.append(f"ALERT: {symbol} price has risen to {price} USD!")
-        elif price <= config["price_thresholds"][symbol]["down"]:
-            alerts.append(f"ALERT: {symbol} price has dropped to {price} USD!")
+        if symbol not in config["price_thresholds"]:
+            continue
+
+        up_threshold = config["price_thresholds"][symbol]["up"]
+        down_threshold = config["price_thresholds"][symbol]["down"]
+
+        # Load the last state and price for this symbol
+        last_alert_info = alert_state.get(symbol, {})
+        last_alert_type = last_alert_info.get("type")
+        last_alert_price = last_alert_info.get("price", 0)
+
+        # Check upward threshold
+        if price >= up_threshold:
+            if last_alert_type != "up":
+                # First time crossing the threshold
+                alerts.append(f"ALERT: {symbol} price has risen to {price} USD!")
+                alert_state[symbol] = {"type": "up", "price": price}
+            elif price >= last_alert_price * (1 + ALERT_PERCENTAGE):
+                # Price increased by 10% after last alert
+                alerts.append(f"ALERT: {symbol} price has increased significantly to {price} USD!")
+                alert_state[symbol]["price"] = price  # Update last alert price
+
+        # Check downward threshold
+        elif price <= down_threshold:
+            if last_alert_type != "down":
+                # First time crossing downward threshold
+                alerts.append(f"ALERT: {symbol} price has dropped to {price} USD!")
+                alert_state[symbol] = {"type": "down", "price": price}
+            elif price <= last_alert_price * (1 - ALERT_PERCENTAGE):
+                # Price decreased by 10% after last alert
+                alerts.append(f"ALERT: {symbol} price has dropped significantly to {price} USD!")
+                alert_state[symbol]["price"] = price  # Update last alert price
+
+        # If price is within normal range, reset alert state
+        else:
+            alert_state.pop(symbol, None)
+
+        # Save the updated alert state
+    save_alert_state(alert_state)
 
     return alerts
 
