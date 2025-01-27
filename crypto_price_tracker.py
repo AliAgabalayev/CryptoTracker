@@ -96,15 +96,23 @@ def get_crypto_prices():
 
 # Function to load previous alert states
 def load_alert_state():
-    if os.path.exists(ALERT_STATE_FILE):
+    if not os.path.exists(ALERT_STATE_FILE):
+        return {}
+
+    try:
         with open(ALERT_STATE_FILE, "r") as file:
-            return json.load(file)
-    return {}
+            content = file.read().strip()
+            if not content:
+                return {}
+            return json.loads(content)
+    except json.JSONDecodeError:
+        print("Error: alerts_state.json is corrupted. Resetting state.")
+        return {}
 
 
 def save_alert_state(state):
     with open(ALERT_STATE_FILE, "w") as file:
-        json.dump(state, file)
+        json.dump(state, file, indent=4)
 
 
 # Function to send Telegram notifications
@@ -119,52 +127,52 @@ def send_telegram_notification(message):
 
 # Function to check alerts based on config data
 def check_alerts(data):
-    global config
+    global config, ALERT_PERCENTAGE
     alerts = []
-
     alert_state = load_alert_state()
 
     for symbol, info in data.items():
         price = round(info["quote"]["USD"]["price"], 2)
 
         if symbol not in config["price_thresholds"]:
-            continue
+            continue  # Skip if no threshold is defined for this symbol
 
-        up_threshold = config["price_thresholds"][symbol]["up"]
-        down_threshold = config["price_thresholds"][symbol]["down"]
+        up_threshold = config["price_thresholds"][symbol].get("up")
+        down_threshold = config["price_thresholds"][symbol].get("down")
 
-        # Load the last state and price for this symbol
+        # Load the last state for this symbol
         last_alert_info = alert_state.get(symbol, {})
         last_alert_type = last_alert_info.get("type")
         last_alert_price = last_alert_info.get("price", 0)
 
-        # Check upward threshold
-        if price >= up_threshold:
+        # Check for upward threshold alerts
+        if up_threshold and price >= up_threshold:
             if last_alert_type != "up":
                 # First time crossing the threshold
-                alerts.append(f"ALERT: {symbol} price has risen to {price} USD!")
+                alerts.append(f"ALERT 🚀: {symbol} price has risen to {price} USD!")
                 alert_state[symbol] = {"type": "up", "price": price}
             elif price >= last_alert_price * (1 + ALERT_PERCENTAGE):
-                # Price increased by 10% after last alert
-                alerts.append(f"ALERT: {symbol} price has increased significantly to {price} USD!")
+                # Price increased significantly after last alert
+                alerts.append(f"ALERT 📈: {symbol} price has jumped by {ALERT_PERCENTAGE * 100}% to {price} USD!")
                 alert_state[symbol]["price"] = price  # Update last alert price
 
-        # Check downward threshold
-        elif price <= down_threshold:
+        # Check for downward threshold alerts
+        elif down_threshold and price <= down_threshold:
             if last_alert_type != "down":
                 # First time crossing downward threshold
-                alerts.append(f"ALERT: {symbol} price has dropped to {price} USD!")
+                alerts.append(f"ALERT 🔻: {symbol} price has dropped to {price} USD!")
                 alert_state[symbol] = {"type": "down", "price": price}
             elif price <= last_alert_price * (1 - ALERT_PERCENTAGE):
-                # Price decreased by 10% after last alert
-                alerts.append(f"ALERT: {symbol} price has dropped significantly to {price} USD!")
+                # Price dropped significantly after last alert
+                alerts.append(f"ALERT 📉: {symbol} price has fallen by {ALERT_PERCENTAGE * 100}% to {price} USD!")
                 alert_state[symbol]["price"] = price  # Update last alert price
 
-        # If price is within normal range, reset alert state
+        # If the price stabilizes within a normal range, reset alert state
         else:
-            alert_state.pop(symbol, None)
+            if symbol in alert_state:
+                del alert_state[symbol]
 
-        # Save the updated alert state
+    # Save updated alert state
     save_alert_state(alert_state)
 
     return alerts
@@ -172,7 +180,7 @@ def check_alerts(data):
 
 # Function to log alerts to a file
 def log_alerts(alerts):
-    with open("alerts.log", "a") as log_file:
+    with open("alerts_log.txt", "a", encoding="utf-8") as log_file:
         for alert in alerts:
             log_file.write(alert + "\n")
 
