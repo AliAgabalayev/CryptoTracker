@@ -1,4 +1,3 @@
-
 # Crypto Price Tracker
 
 This is a cryptocurrency price tracking application built with Python that fetches live price data for multiple cryptocurrencies, compares them with user-defined thresholds, and sends notifications via Telegram and desktop notifications. It also includes a caching system to reduce unnecessary API calls by checking for configuration changes.
@@ -7,6 +6,7 @@ This is a cryptocurrency price tracking application built with Python that fetch
 - Fetches cryptocurrency prices from CoinMarketCap API.
 - Tracks prices of selected cryptocurrencies.
 - Sends Telegram and desktop notifications when a price threshold is reached.
+- Prevents duplicate alerts by enforcing a **10% incremental threshold** before triggering another alert.
 - Caches configuration data with hash validation to reduce latency and avoid redundant API requests.
 - Logs all alerts to a local file.
 
@@ -22,12 +22,13 @@ Before using this project, you need the following:
 ### 1. Clone the Repository
 Clone the project repository to your local machine:
 ```bash
-git clone https://github.com/yourusername/crypto-price-tracker.git 
+git clone https://github.com/yourusername/crypto-price-tracker.git
 ```
 ### 2. Install Dependencies
 Navigate to the project directory and install the required dependencies:
 ```bash
-cd crypto-price-tracker pip install -r requirements.txt
+cd crypto-price-tracker
+pip install -r requirements.txt
 ```
 ### 3. Set Up Environment Variables
 
@@ -76,6 +77,15 @@ Example `config.json`:
 -   The script fetches cryptocurrency prices every 15 minutes from the **CoinMarketCap API**.
 -   It compares the fetched prices against the configured thresholds and triggers alerts if prices exceed or drop below the specified values.
 -   Notifications are sent via **Telegram**.
+-   **Prevents duplicate alerts** by enforcing a **10% increase/decrease rule** before sending a new notification.
+
+## Incremental Alert System
+
+To prevent excessive alerts, the script follows this rule:
+
+1. If a cryptocurrency reaches the configured threshold for the **first time**, an alert is triggered.
+2. A **new alert is only sent if the price increases/decreases by 10%** from the last alert price.
+3. If the price goes back below the threshold and rises again, the system resets and waits for the next alert trigger.
 
 ## Cache Mechanism
 
@@ -91,3 +101,4 @@ Telegram notifications are sent using the Telegram Bot API. To receive these not
 -   Add more customizable alert options.
 -   Integrate with other APIs for more cryptocurrency data.
 -   Improve error handling for API requests.
+
